@@ -338,6 +338,17 @@
   }
 
   /* ---------- nav ---------- */
+  .bgm-toggle{
+    position:fixed; top:calc(14px + env(safe-area-inset-top,0px)); right:14px; z-index:70;
+    width:40px; height:40px; border-radius:50%; border:1px solid var(--velvet-soft);
+    background:rgba(20,10,35,.6); color:var(--text-hi);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .bgm-toggle svg{ width:18px; height:18px; }
+  .bgm-toggle .icon-off{ display:none; }
+  .bgm-toggle.is-muted .icon-on{ display:none; }
+  .bgm-toggle.is-muted .icon-off{ display:block; }
+
   .page-nav{
     position:fixed; left:0; right:0; bottom:0; z-index:40;
     display:flex; align-items:center; justify-content:center; gap:18px;
@@ -367,6 +378,12 @@
 </style>
 </head>
 <body>
+
+<audio id="bgm" src="bgm.mp3" loop preload="auto"></audio>
+<button class="bgm-toggle" id="bgmToggle" type="button" aria-label="배경음악 켜기/끄기">
+  <svg class="icon-on" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 9v6h4l5 5V4L8 9H4z"/><path d="M16.5 12c0-1.77-.77-3.29-2-4.24v8.48c1.23-.95 2-2.47 2-4.24z"/><path d="M19 6.5c1.83 1.53 3 3.82 3 6.38s-1.17 4.85-3 6.38" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  <svg class="icon-off" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 9v6h4l5 5V4L8 9H4z"/><path d="M19 8l-4.5 4.5M14.5 8L19 12.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+</button>
 
 <div class="stage" id="stage">
   <div class="vignette" aria-hidden="true"></div>
@@ -581,6 +598,25 @@
   }, {passive:true});
 
   setDots(0);
+
+  var bgm = document.getElementById('bgm');
+  var bgmToggle = document.getElementById('bgmToggle');
+  function updateBgmIcon(){ bgmToggle.classList.toggle('is-muted', bgm.paused); }
+  function tryPlayBgm(){ bgm.play().then(updateBgmIcon).catch(updateBgmIcon); }
+  bgm.addEventListener('play', updateBgmIcon);
+  bgm.addEventListener('pause', updateBgmIcon);
+  tryPlayBgm();
+  function startBgmOnFirstInteraction(){
+    if(bgm.paused) tryPlayBgm();
+    document.removeEventListener('click', startBgmOnFirstInteraction);
+    document.removeEventListener('touchstart', startBgmOnFirstInteraction);
+  }
+  document.addEventListener('click', startBgmOnFirstInteraction);
+  document.addEventListener('touchstart', startBgmOnFirstInteraction, {passive:true});
+  bgmToggle.addEventListener('click', function(e){
+    e.stopPropagation();
+    if(bgm.paused){ tryPlayBgm(); } else { bgm.pause(); }
+  });
 
   var placeModal = document.getElementById('placeModal');
   var placeModalTitle = document.getElementById('placeModalTitle');
