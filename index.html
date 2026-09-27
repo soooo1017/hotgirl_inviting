@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hot Girl's 2nd Healing Day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gowun+Dodum&family=Gaegu:wght@400;700&family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Cinzel:wght@600;700&display=swap">
+<style>
+  /* ---------- tokens (single committed world: a party invitation at night) ---------- */
+  :root{
+    --ink:#1c1230;
+    --ink-deep:#120a1f;
+    --velvet:#2c1b4c;
+    --velvet-soft:#40296b;
+    --paper:#fff6e8;
+    --paper-line:#e6d5b8;
+    --coral:#E5C158;
+    --marigold:#fad643;
+    --marigold-light:#fff0b8;
+    --marigold-deep:#b8860b;
+    --teal:#f72585;
+    --text-hi:#f7f1ff;
+    --text-mu:#c3aee6;
+    --text-on-paper:#3a2a1a;
+    --text-on-paper-mu:#8a7660;
+    --gold-light:#f6e2a8;
+    --gold:#c9a24a;
+    --gold-deep:#8a6a24;
+    --font-display:'Do Hyeon','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+    --font-body:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+    --font-hand:'Gaegu','Apple SD Gothic Neo',cursive,sans-serif;
+    color-scheme:dark;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html,body{ height:100%; margin:0; }
+  body{
+    background:var(--ink);
+    color:var(--text-hi);
+    font-family:var(--font-body);
+    overflow:hidden;
+    -webkit-tap-highlight-color:transparent;
+  }
+  h1,h2,h3,p{ margin:0; text-wrap:balance; }
+  button{ font-family:inherit; }
+
+  /* ---------- full-bleed stage ---------- */
+  .stage{
+    position:fixed; inset:0;
+    perspective:1800px;
+    overflow:hidden;
+  }
+  .vignette{
+    position:absolute; inset:0;
+    background:radial-gradient(ellipse at 50% 38%, transparent 35%, var(--ink-deep) 100%);
+    pointer-events:none; z-index:5;
+  }
+
+  .bit{ position:absolute; top:-5%; border-radius:2px; opacity:.85; animation:fall linear infinite; }
+  @keyframes fall{
+    0%{ transform:translateY(0) rotate(0deg); }
+    100%{ transform:translateY(112vh) rotate(320deg); }
+  }
+
+  /* ---------- pages ---------- */
+  .page{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center;
+    overflow-y:auto; -webkit-overflow-scrolling:touch;
+    padding:calc(30px + env(safe-area-inset-top,0px)) 20px calc(96px + env(safe-area-inset-bottom,0px));
+    visibility:hidden; pointer-events:none;
+    backface-visibility:hidden;
+    transform-style:preserve-3d;
+    z-index:1;
+  }
+  .page.is-active{ visibility:visible; pointer-events:auto; z-index:2; }
+  /* vertical auto-margin centers short content, but yields cleanly (no clipping) once content is taller than the screen */
+  .invite-card,.overview,.timetable{ margin:auto 0; width:100%; flex-shrink:0; }
+
+  .eyebrow{
+    font-family:var(--font-display);
+    letter-spacing:.28em;
+    font-size:.72rem;
+    color:var(--teal);
+    margin-bottom:10px;
+  }
+  /* a flat marigold fill reads as plain yellow — this shimmer sells it as gold */
+  .gold-text{
+    background:linear-gradient(160deg,var(--marigold-light),var(--marigold) 55%,var(--marigold-deep));
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent;
+  }
+
+  /* ---------- page flip (used between page 2 and 3) ---------- */
+  .page.flip-out-fwd{ animation:flipOutFwd .52s ease-in forwards; transform-origin:left center; }
+  .page.flip-in-fwd{ visibility:visible; pointer-events:none; animation:flipInFwd .52s ease-out forwards; transform-origin:right center; z-index:1; }
+  .page.flip-out-back{ animation:flipOutBack .52s ease-in forwards; transform-origin:right center; }
+  .page.flip-in-back{ visibility:visible; pointer-events:none; animation:flipInBack .52s ease-out forwards; transform-origin:left center; z-index:1; }
+  @keyframes flipOutFwd{ 0%{transform:rotateY(0)} 100%{transform:rotateY(-100deg); opacity:0;} }
+  @keyframes flipInFwd{ 0%{transform:rotateY(58deg); opacity:0;} 100%{transform:rotateY(0); opacity:1;} }
+  @keyframes flipOutBack{ 0%{transform:rotateY(0)} 100%{transform:rotateY(100deg); opacity:0;} }
+  @keyframes flipInBack{ 0%{transform:rotateY(-58deg); opacity:0;} 100%{transform:rotateY(0); opacity:1;} }
+
+  /* ---------- curtain (used to open the envelope's letter into page 2) ---------- */
+  #curtain{
+    position:fixed; inset:0; z-index:50;
+    background:var(--paper);
+    opacity:0; pointer-events:none;
+    transition:opacity .48s ease;
+  }
+  #curtain.is-shown{ opacity:1; }
+
+  /* ================= PAGE 0 — envelope ================= */
+  #page-0{ background:#15002A; z-index:6; }
+  /* page 0 has its own light-on-dark palette, so it gets its own confetti layer
+     rather than the shared dark-stage one — kept behind the text and envelope */
+  #confetti0{ position:absolute; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+  .invite-card{ position:relative; z-index:1; text-align:center; max-width:420px; }
+  .invite-card .eyebrow{ color:#F4D03F; }
+  .envelope-wrap{ margin:22px auto 18px; perspective:1200px; width:min(78vw,300px); }
+  .envelope{ position:relative; width:100%; aspect-ratio:3/2; cursor:pointer; }
+  .envelope__back{
+    position:absolute; inset:0; border-radius:10px;
+    background:linear-gradient(165deg,#40296e 0%,#2A1B4E 60%,#1f1440 100%);
+    /* dark contact shadow alone disappears against the near-black page —
+       a lighter ambient glow is what actually reads as "lifted off the page" here */
+    box-shadow:
+      0 26px 50px -6px rgba(0,0,0,.75),
+      0 10px 22px -6px rgba(0,0,0,.55),
+      0 4px 30px 2px rgba(140,108,214,.28);
+    z-index:0;
+  }
+  /* clips the letter so nothing peeks out until the flap opens and it slides up */
+  .envelope__pocket{
+    position:absolute; inset:0; border-radius:10px;
+    overflow:hidden; z-index:1;
+  }
+  .envelope__paper{
+    position:absolute; left:8%; right:8%; bottom:8%; height:84%;
+    background:var(--paper);
+    border-radius:6px 6px 2px 2px;
+    box-shadow:0 6px 18px rgba(0,0,0,.35);
+    transform:translateY(120%);
+    opacity:0;
+    /* closing: paper retreats first, no delay */
+    transition:transform .4s cubic-bezier(.4,0,1,1), opacity .3s ease;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:14px 10px 16px;
+  }
+  .envelope.is-open .envelope__paper{
+    transform:translateY(14%); opacity:1;
+    /* opening: paper rises last, after the flap has cleared the way */
+    transition:transform .5s cubic-bezier(.16,1,.3,1) .68s, opacity .4s ease .68s;
+  }
+  .envelope__title{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .envelope__title .rule{ width:30px; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+  .envelope__paper .title{
+    font-family:'Playfair Display','Do Hyeon',serif; font-weight:700; font-size:1.3rem; line-height:1.4; letter-spacing:.02em;
+    text-align:center;
+    background:linear-gradient(160deg,var(--gold-light),var(--gold) 55%,var(--gold-deep));
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent;
+  }
+  /* Playfair Display's figures sit shorter than its caps — scale the "2" up to match the H's cap-height */
+  .title-num{ font-size:1.2em; }
+  .title-ord{ font-size:.72em; }
+  .envelope__flap{
+    position:absolute; top:0; left:0; right:0; height:56%;
+    /* a flat fill on a near-black page reads as flat — a top-to-bottom shade sells the fold on its own */
+    background:linear-gradient(175deg,#523c92 0%,#3B286B 55%,#28194f 100%);
+    /* top two corners rounded to 10px to match the envelope body's own border-radius */
+    clip-path:polygon(
+      0 10px, 1.3px 5px, 5px 1.3px, 10px 0,
+      calc(100% - 10px) 0, calc(100% - 5px) 1.3px, calc(100% - 1.3px) 5px, 100% 10px,
+      50% 100%
+    );
+    transform-origin:top center; transform:rotateX(0deg);
+    backface-visibility:hidden;
+    /* a black shadow alone vanishes against the dark envelope body — pairing it with a faint light violet glow is what actually separates the fold */
+    filter:drop-shadow(0px 10px 16px rgba(0,0,0,.6)) drop-shadow(0px 3px 8px rgba(180,140,255,.28));
+    /* closing: flap seals shut in the middle of the sequence, after the paper tucks away */
+    transition:transform .5s cubic-bezier(.16,1,.3,1) .3s;
+    z-index:2;
+  }
+  .envelope.is-open .envelope__flap{
+    transform:rotateX(-180deg);
+    /* opening: flap lifts once the wax is off, before the paper appears */
+    transition:transform .6s cubic-bezier(.16,1,.3,1) .3s;
+  }
+  .envelope__seal{
+    position:absolute; top:56%; left:50%;
+    width:76px; height:76px;
+    transform:translate(-50%,-50%) scale(1) rotate(0deg);
+    opacity:1;
+    /* closing: the seal presses back on last, once the flap is shut */
+    transition:transform .3s cubic-bezier(.16,1,.3,1) .65s, opacity .25s ease .65s;
+    z-index:3;
+  }
+  .envelope__seal img{
+    width:100%; height:100%; object-fit:contain; display:block;
+    filter:drop-shadow(0 4px 7px rgba(0,0,0,.45));
+  }
+  .envelope.is-open .envelope__seal{
+    transform:translate(-50%,-85%) scale(.55) rotate(-12deg);
+    opacity:0;
+    /* opening: the wax lifts off first, right on click */
+    transition:transform .32s cubic-bezier(.4,0,1,1), opacity .28s ease;
+  }
+  .envelope-hint{ font-size:.86rem; color:#E5C158; margin-top:4px; }
+  .read-btn{
+    margin-top:14px; border:none; border-radius:999px; padding:11px 22px;
+    background:var(--coral); color:#2a0f0f; font-family:var(--font-display); font-size:.95rem;
+    cursor:pointer; opacity:0; transform:translateY(6px); pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+  }
+  .envelope.is-open ~ .read-btn{
+    opacity:1; transform:translateY(0); pointer-events:auto;
+    transition:opacity .35s ease .95s, transform .35s ease .95s;
+  }
+
+  /* ================= PAGE 1 — overview ================= */
+  .overview{ width:100%; max-width:480px; text-align:center; }
+  .overview .party-title{ font-family:'Cinzel','Do Hyeon',serif; font-weight:700; letter-spacing:.02em; font-size:clamp(1.9rem,7vw,2.5rem); color:var(--text-hi); }
+  .overview .lede{ font-size:.96rem; line-height:1.7; color:var(--text-mu); margin:14px auto 0; max-width:38ch; }
+  .detail-grid{
+    display:grid; grid-template-columns:1fr 1fr; grid-template-rows:auto auto;
+    gap:10px; margin-top:22px; width:100%; text-align:left;
+  }
+  .detail-card{
+    background:var(--velvet); border:1px solid var(--velvet-soft);
+    border-radius:12px; padding:12px 14px;
+  }
+  .date-card{ grid-column:1; grid-row:1 / 3; display:flex; flex-direction:column; }
+  .place-card{ grid-column:2; grid-row:1; display:flex; flex-direction:column; justify-content:center; }
+  .todo-card{ grid-column:2; grid-row:2; display:flex; flex-direction:column; justify-content:center; }
+  @media (max-width:340px){
+    .detail-grid{ grid-template-columns:1fr; grid-template-rows:none; }
+    .date-card,.place-card,.todo-card{ grid-column:auto; grid-row:auto; }
+  }
+  .detail-card .k{ font-family:var(--font-display); font-size:.68rem; letter-spacing:.14em; color:var(--teal); }
+  .detail-card .v{ font-size:.9rem; margin-top:4px; color:var(--text-hi); line-height:1.5; }
+  .date-card__head{ display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
+
+  /* -- mini calendar: a full month grid, no grid lines, just weekday + date cells -- */
+  .mini-cal{ margin-top:10px; }
+  .mini-cal__dow{ display:grid; grid-template-columns:repeat(7,1fr); }
+  .mini-cal__dow span{
+    text-align:center; font-family:var(--font-display);
+    font-size:.56rem; letter-spacing:.02em; color:var(--text-mu); opacity:.7;
+  }
+  .mini-cal__dates{ display:grid; grid-template-columns:repeat(7,1fr); row-gap:5px; margin-top:7px; }
+  .mini-cal__dates span{ display:flex; align-items:center; justify-content:center; }
+  .mini-cal__dates span::before{
+    content:attr(data-d);
+    width:22px; height:22px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:.72rem; font-variant-numeric:tabular-nums; color:var(--text-hi);
+  }
+  .mini-cal__dates span.is-dim::before{ color:var(--text-mu); opacity:.4; }
+  .mini-cal__dates span.is-marked::before{ background:var(--teal); color:#fff; font-weight:700; }
+  .date-range{ font-size:.68rem; color:var(--text-hi); white-space:nowrap; }
+
+  .todo-list{ list-style:none; margin:6px 0 0; padding:0; display:flex; flex-direction:column; gap:6px; }
+  .todo-list li{ font-size:.86rem; color:var(--text-hi); display:flex; align-items:center; gap:9px; }
+  .todo-list li::before{ content:""; width:6px; height:6px; border-radius:50%; background:var(--marigold); flex:none; }
+  .edit-note{ font-size:.72rem; color:var(--text-mu); opacity:.7; margin-top:14px; }
+  .next-btn{
+    margin-top:22px; border:none; border-radius:999px; padding:12px 26px;
+    background:linear-gradient(155deg,var(--marigold-light),var(--marigold) 55%,var(--marigold-deep));
+    box-shadow:0 6px 16px -4px rgba(184,134,11,.5);
+    color:#3a2405; font-family:var(--font-display); font-size:.98rem;
+    cursor:pointer;
+  }
+
+  /* ================= PAGE 2 — timetable ================= */
+  .timetable{ width:100%; max-width:480px; display:flex; flex-direction:column; align-items:center; }
+  .timetable .party-title{ font-family:var(--font-display); font-size:clamp(1.5rem,6vw,2rem); }
+  .schedule{ width:100%; margin-top:14px; }
+  .day-label{
+    display:inline-block;
+    font-family:var(--font-display); font-size:.72rem; letter-spacing:.14em;
+    padding:5px 18px; border-radius:999px;
+    background:var(--marigold);
+    color:#3a2405; font-weight:700; margin:18px 0 10px; text-align:left;
+  }
+  .day-label:first-child{ margin-top:2px; }
+  .item{ display:grid; grid-template-columns:52px 16px 1fr; column-gap:10px; padding:7px 0; text-align:left; }
+  .item .t{ font-variant-numeric:tabular-nums; font-size:.82rem; padding-top:2px; color:var(--text-hi); }
+  .item .rail{ position:relative; display:flex; justify-content:center; }
+  .item .rail::before{ content:""; position:absolute; top:0; bottom:-7px; width:2px; background:var(--velvet-soft); }
+  .item .rail::after{ content:""; width:8px; height:8px; border-radius:50%; background:var(--teal); margin-top:5px; z-index:1; }
+  .item:last-child .rail::before{ display:none; }
+  .item .name{ font-size:.94rem; color:var(--text-hi); }
+  .item .desc{ font-size:.8rem; color:var(--text-mu); margin-top:2px; line-height:1.5; }
+
+  .place-btn{
+    margin-left:4px; padding:0; border:none; background:none; color:var(--text-hi);
+    font-family:var(--font-body); font-size:.8rem; line-height:1.6; cursor:pointer;
+  }
+
+  .place-modal{
+    position:fixed; inset:0; z-index:60;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    visibility:hidden; opacity:0;
+    transition:opacity .25s ease, visibility 0s linear .25s;
+  }
+  .place-modal.is-open{ visibility:visible; opacity:1; transition:opacity .25s ease; }
+  .place-modal__backdrop{ position:absolute; inset:0; background:rgba(0,0,0,.6); }
+  .place-modal__card{
+    position:relative; z-index:1; width:100%; max-width:320px; max-height:86vh; overflow-y:auto;
+    text-align:center;
+    background:var(--velvet); border:1px solid var(--velvet-soft); border-radius:16px; padding:24px 20px;
+    transform:translateY(10px) scale(.97);
+    transition:transform .25s ease;
+  }
+  .place-modal.is-open .place-modal__card{ transform:translateY(0) scale(1); }
+  .place-modal__label{ font-family:var(--font-display); font-size:.64rem; letter-spacing:.16em; color:var(--teal); }
+  .place-modal__title{ font-family:var(--font-display); font-size:1.15rem; color:var(--text-hi); margin-top:8px; }
+  .place-modal__value{ font-size:.86rem; color:var(--text-mu); margin-top:12px; line-height:1.6; white-space:pre-line; }
+  .place-modal__map{ width:100%; border-radius:12px; margin-top:14px; display:block; }
+  .place-modal__links{ display:flex; gap:8px; margin-top:14px; }
+  .place-map-btn{
+    flex:1; display:inline-flex; align-items:center; justify-content:center; gap:5px;
+    padding:9px 0; border-radius:999px;
+    font-family:var(--font-body); font-size:.8rem; font-weight:700; text-decoration:none;
+  }
+  .place-map-btn svg{ width:14px; height:14px; flex:none; }
+  .place-map-btn--naver{ background:#03C75A; color:#fff; }
+  .place-map-btn--kakao{ background:#FEE500; color:#3C1E1E; }
+  .place-modal__candidates{ display:flex; flex-direction:column; gap:12px; margin-top:14px; }
+  .place-candidate{ background:var(--ink); border:1px solid var(--velvet-soft); border-radius:12px; padding:12px; }
+  .place-candidate__name{ font-size:.88rem; color:var(--text-hi); margin-bottom:9px; }
+  .place-candidate__links{ display:flex; gap:8px; }
+  .place-modal__close{
+    margin-top:20px; border:1px solid var(--velvet-soft); border-radius:999px; padding:9px 24px;
+    background:var(--velvet-soft); color:var(--text-hi); font-family:var(--font-display); font-size:.85rem; cursor:pointer;
+  }
+
+  /* ---------- nav ---------- */
+  .page-nav{
+    position:fixed; left:0; right:0; bottom:0; z-index:40;
+    display:flex; align-items:center; justify-content:center; gap:18px;
+    padding:12px 20px calc(14px + env(safe-area-inset-bottom,0px));
+  }
+  .nav-arrow{
+    width:44px; height:44px; border-radius:50%; border:1px solid var(--velvet-soft);
+    background:rgba(44,27,76,.7); color:var(--text-hi); font-size:1.1rem; line-height:1;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; flex:none;
+  }
+  .nav-arrow:disabled{ opacity:.3; cursor:default; }
+  .page-dots{ display:flex; gap:4px; }
+  .dot{ width:32px; height:32px; border:none; background:none; cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center; }
+  .dot::after{ content:""; width:8px; height:8px; border-radius:5px; background:var(--velvet-soft); transition:width .25s ease,background .25s ease; }
+  .dot.is-active::after{ background:var(--coral); width:22px; }
+
+  @media (max-width:380px){
+    .envelope-wrap{ width:82vw; }
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .bit{ animation:none; opacity:.5; }
+    .envelope__paper,.envelope__flap,.envelope__seal,.read-btn{ transition-duration:.01ms; transition-delay:0s; }
+    .page.flip-out-fwd,.page.flip-in-fwd,.page.flip-out-back,.page.flip-in-back{ animation-duration:.01ms; }
+    #curtain{ transition-duration:.01ms; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <div class="vignette" aria-hidden="true"></div>
+
+  <!-- PAGE 0 : envelope arrival -->
+  <section class="page is-active" id="page-0" data-index="0" aria-label="초대장 열기">
+    <div id="confetti0" aria-hidden="true"></div>
+    <div class="invite-card">
+      <p class="eyebrow">PRIVATE INVITATION</p>
+      <div class="envelope-wrap">
+        <div class="envelope" id="envelope" role="button" tabindex="0" aria-label="초대장 봉투, 눌러서 열기">
+          <div class="envelope__back"></div>
+          <div class="envelope__pocket">
+            <div class="envelope__paper">
+              <div class="envelope__title">
+                <span class="rule"></span>
+                <p class="title">Hot Girl's<br><span class="title-num">2</span><span class="title-ord">nd</span> Healing Day</p>
+                <span class="rule"></span>
+              </div>
+            </div>
+          </div>
+          <div class="envelope__flap"></div>
+          <div class="envelope__seal"><img src="seal.webp" alt="실링 왁스 인장"></div>
+        </div>
+      </div>
+      <p class="envelope-hint" id="envelopeHint">봉투를 눌러서 초대장을 열어보세요</p>
+      <button class="read-btn" id="readBtn">초대장 읽기 →</button>
+    </div>
+  </section>
+
+  <!-- PAGE 1 : overview / invitation -->
+  <section class="page" id="page-1" data-index="1" aria-label="초대 소개">
+    <div class="overview">
+      <p class="eyebrow gold-text">YOU'RE INVITED</p>
+      <h1 class="party-title">Healing Day</h1>
+      <p class="lede">나를 가꾸는 하루<br>외면과 내면 모두 아름다워지는 날~</p>
+
+      <div class="detail-grid">
+        <div class="detail-card date-card">
+          <div class="date-card__head">
+            <p class="k">DATE</p>
+            <p class="date-range">10.31 (토) – 11.1 (일)</p>
+          </div>
+          <div class="mini-cal">
+            <div class="mini-cal__dow">
+              <span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span>
+            </div>
+            <div class="mini-cal__dates">
+              <span class="is-dim" data-d="28"></span><span class="is-dim" data-d="29"></span><span class="is-dim" data-d="30"></span><span data-d="1"></span><span data-d="2"></span><span data-d="3"></span><span data-d="4"></span>
+              <span data-d="5"></span><span data-d="6"></span><span data-d="7"></span><span data-d="8"></span><span data-d="9"></span><span data-d="10"></span><span data-d="11"></span>
+              <span data-d="12"></span><span data-d="13"></span><span data-d="14"></span><span data-d="15"></span><span data-d="16"></span><span data-d="17"></span><span data-d="18"></span>
+              <span data-d="19"></span><span data-d="20"></span><span data-d="21"></span><span data-d="22"></span><span data-d="23"></span><span data-d="24"></span><span data-d="25"></span>
+              <span data-d="26"></span><span data-d="27"></span><span data-d="28"></span><span data-d="29"></span><span data-d="30"></span><span class="is-marked" data-d="31"></span><span class="is-marked" data-d="1"></span>
+            </div>
+          </div>
+        </div>
+        <div class="detail-card place-card"><p class="k">PLACE</p><p class="v">Hyejin's Sweet Home</p></div>
+        <div class="detail-card todo-card">
+          <p class="k">WHAT TO DO</p>
+          <ul class="todo-list">
+            <li>Head SPA</li>
+            <li>Girl's Party</li>
+            <li>Admin Night</li>
+          </ul>
+        </div>
+      </div>
+      <button class="next-btn" id="toTimetable">타임테이블 보기 →</button>
+    </div>
+  </section>
+
+  <!-- PAGE 2 : timetable -->
+  <section class="page" id="page-2" data-index="2" aria-label="세부 일정">
+    <div class="timetable">
+      <p class="eyebrow">TIME TABLE</p>
+      <div class="schedule">
+        <p class="day-label">DAY 1</p>
+        <div class="item"><span class="t">15:00</span><span class="rail"></span><span><span class="name">헤드스파 <button class="place-btn" data-place-title="헤드스파 장소" data-place-value="웰킨두피탈모센터 강남점
+강남역 5번 출구에서 도보 약 2분" data-place-map="웰킨두피탈모센터 강남점" data-place-image="headspa-map.webp">&gt;&gt;&gt; 장소 확인하기</button></span><br><span class="desc">무더운 여름을 견뎌준 두피에게 주는 휴식 시간</span></span></div>
+        <div class="item"><span class="t">17:00</span><span class="rail"></span><span><span class="name">걸스 파티 <button class="place-btn" data-place-title="걸스 파티 장소" data-place-value="Hyejin's Sweet Home" data-place-image="girlsparty-photo.webp">&gt;&gt;&gt; 장소 확인하기</button></span><br><span class="desc">각자 준비하는 맛있는 음식 먹으면서 토크토크 타임</span></span></div>
+        <div class="item"><span class="t">20:00</span><span class="rail"></span><span><span class="name">주제 토크</span><br><span class="desc">몇가지 주제 정해서 생각을 공유해보는 시간</span></span></div>
+        <div class="item"><span class="t">21:00</span><span class="rail"></span><span><span class="name">어드민나이트</span><br><span class="desc">각자 하지 못했던, 하고 싶었던, 해야하는 일 하는 시간</span></span></div>
+
+        <p class="day-label">DAY 2</p>
+        <div class="item"><span class="t">11:00</span><span class="rail"></span><span><span class="name">기상&amp;브런치</span><br><span class="desc">느긋하게 일어나서 즐기는 브런치</span></span></div>
+        <div class="item"><span class="t">14:00</span><span class="rail"></span><span><span class="name">클라이밍 <button class="place-btn" data-place-title="클라이밍 장소" data-place-value="아직 확정된 장소는 아니예요.
+근처 후보 3곳 이외에도 확인해서 정해봅시다" data-place-candidates='["더클라임 양재점","클라이밍파크 강남점","서울숲클라이밍 잠실점"]'>&gt;&gt;&gt; 장소 확인하기</button></span><br><span class="desc">클라이머 윤경 &amp; 복귀클 정희, 수진 &amp; 첫클 혜진의<br>안전하고 즐거운 벽타기</span></span></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="curtain" aria-hidden="true"></div>
+
+<div class="place-modal" id="placeModal" aria-hidden="true">
+  <div class="place-modal__backdrop" id="placeModalBackdrop"></div>
+  <div class="place-modal__card" role="dialog" aria-modal="true" aria-labelledby="placeModalTitle">
+    <p class="place-modal__label">PLACE</p>
+    <p class="place-modal__title" id="placeModalTitle"></p>
+    <p class="place-modal__value" id="placeModalValue"></p>
+    <img class="place-modal__map" id="placeModalImg" alt="" hidden>
+    <div class="place-modal__links" id="placeModalLinks" hidden>
+      <a class="place-map-btn place-map-btn--naver" id="placeNaverLink" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h5.2l6 8.7V4H20v16h-5.2l-6-8.7V20H4V4z"/></svg>
+        네이버지도
+      </a>
+      <a class="place-map-btn place-map-btn--kakao" id="placeKakaoLink" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 4C6.5 4 2 7.6 2 12c0 2.8 1.8 5.2 4.5 6.6-.2 1-.7 2.6-1.5 3.9 1.7-.3 3.4-1.1 4.6-1.9.8.2 1.6.3 2.4.3 5.5 0 10-3.6 10-8S17.5 4 12 4z"/></svg>
+        카카오맵
+      </a>
+    </div>
+    <div class="place-modal__candidates" id="placeModalCandidates" hidden></div>
+    <button class="place-modal__close" id="placeModalClose">닫기</button>
+  </div>
+</div>
+
+<nav class="page-nav" aria-label="페이지 이동">
+  <button class="nav-arrow" id="prevBtn" aria-label="이전 페이지">‹</button>
+  <div class="page-dots" id="dots">
+    <button class="dot is-active" data-goto="0" aria-label="1. 초대장"></button>
+    <button class="dot" data-goto="1" aria-label="2. 초대합니다"></button>
+    <button class="dot" data-goto="2" aria-label="3. 타임테이블"></button>
+  </div>
+  <button class="nav-arrow" id="nextBtn" aria-label="다음 페이지">›</button>
+</nav>
+
+<script>
+(function(){
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var pages = [document.getElementById('page-0'), document.getElementById('page-1'), document.getElementById('page-2')];
+  var dots = Array.prototype.slice.call(document.querySelectorAll('.dot'));
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var envelope = document.getElementById('envelope');
+  var readBtn = document.getElementById('readBtn');
+  var envelopeHint = document.getElementById('envelopeHint');
+  var curtain = document.getElementById('curtain');
+  var current = 0, opened = false, animating = false;
+
+  function setEnvelopeOpen(isOpen){
+    opened = isOpen;
+    envelope.classList.toggle('is-open', isOpen);
+    envelopeHint.style.opacity = isOpen ? '0' : '1';
+    envelope.setAttribute('aria-label', isOpen ? '초대장 봉투, 눌러서 다시 닫기' : '초대장 봉투, 눌러서 열기');
+  }
+  function openEnvelope(){ if(!opened) setEnvelopeOpen(true); }
+  function toggleEnvelope(){ setEnvelopeOpen(!opened); }
+  envelope.addEventListener('click', toggleEnvelope);
+  envelope.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggleEnvelope(); } });
+
+  function setDots(i){
+    dots.forEach(function(d,idx){ d.classList.toggle('is-active', idx===i); });
+    prevBtn.disabled = i===0;
+    nextBtn.disabled = i===pages.length-1;
+  }
+
+  function letterReveal(){
+    if(animating || current!==0) return;
+    animating = true;
+    curtain.classList.add('is-shown');
+    var delay = reduced ? 20 : 480;
+    setTimeout(function(){
+      pages[0].classList.remove('is-active');
+      pages[1].classList.add('is-active');
+      current = 1;
+      setDots(1);
+      requestAnimationFrame(function(){ curtain.classList.remove('is-shown'); });
+      setTimeout(function(){ animating=false; }, reduced?20:500);
+    }, delay);
+  }
+  readBtn.addEventListener('click', letterReveal);
+
+  function flip(to){
+    if(animating || to===current || to<0 || to>2) return;
+    if(current===0 && to===1){ letterReveal(); return; }
+    animating = true;
+    var forward = to>current;
+    var outEl = pages[current], inEl = pages[to];
+    inEl.classList.add('is-active');
+    inEl.classList.add(forward?'flip-in-fwd':'flip-in-back');
+    outEl.classList.add(forward?'flip-out-fwd':'flip-out-back');
+    var dur = reduced ? 20 : 540;
+    setTimeout(function(){
+      outEl.classList.remove('is-active','flip-out-fwd','flip-out-back');
+      inEl.classList.remove('flip-in-fwd','flip-in-back');
+      current = to;
+      setDots(current);
+      animating = false;
+    }, dur);
+  }
+
+  prevBtn.addEventListener('click', function(){ flip(current-1); });
+  nextBtn.addEventListener('click', function(){
+    if(current===0 && !opened){ openEnvelope(); return; }
+    if(current===0 && opened){ letterReveal(); return; }
+    flip(current+1);
+  });
+  document.getElementById('toTimetable').addEventListener('click', function(){ flip(2); });
+  dots.forEach(function(d){ d.addEventListener('click', function(){ flip(parseInt(d.dataset.goto,10)); }); });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key==='ArrowRight') nextBtn.click();
+    if(e.key==='ArrowLeft') prevBtn.click();
+  });
+
+  var touchStartX = null;
+  document.getElementById('stage').addEventListener('touchstart', function(e){ touchStartX = e.touches[0].clientX; }, {passive:true});
+  document.getElementById('stage').addEventListener('touchend', function(e){
+    if(touchStartX===null) return;
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    if(Math.abs(dx) > 60){ dx<0 ? nextBtn.click() : prevBtn.click(); }
+    touchStartX = null;
+  }, {passive:true});
+
+  setDots(0);
+
+  var placeModal = document.getElementById('placeModal');
+  var placeModalTitle = document.getElementById('placeModalTitle');
+  var placeModalValue = document.getElementById('placeModalValue');
+  var placeModalImg = document.getElementById('placeModalImg');
+  var placeModalLinks = document.getElementById('placeModalLinks');
+  var placeNaverLink = document.getElementById('placeNaverLink');
+  var placeKakaoLink = document.getElementById('placeKakaoLink');
+  var placeModalCandidates = document.getElementById('placeModalCandidates');
+  var naverIconSvg = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h5.2l6 8.7V4H20v16h-5.2l-6-8.7V20H4V4z"/></svg>';
+  var kakaoIconSvg = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 4C6.5 4 2 7.6 2 12c0 2.8 1.8 5.2 4.5 6.6-.2 1-.7 2.6-1.5 3.9 1.7-.3 3.4-1.1 4.6-1.9.8.2 1.6.3 2.4.3 5.5 0 10-3.6 10-8S17.5 4 12 4z"/></svg>';
+  function openPlaceModal(opts){
+    placeModalTitle.textContent = opts.title;
+    placeModalValue.textContent = opts.value;
+    if(opts.image){
+      placeModalImg.src = opts.image;
+      placeModalImg.hidden = false;
+    } else {
+      placeModalImg.hidden = true;
+      placeModalImg.removeAttribute('src');
+    }
+    if(opts.map){
+      placeNaverLink.href = 'https://map.naver.com/v5/search/' + encodeURIComponent(opts.map);
+      placeKakaoLink.href = 'https://map.kakao.com/link/search/' + encodeURIComponent(opts.map);
+      placeModalLinks.hidden = false;
+    } else {
+      placeModalLinks.hidden = true;
+    }
+    if(opts.candidates && opts.candidates.length){
+      placeModalCandidates.innerHTML = opts.candidates.map(function(name){
+        var naverHref = 'https://map.naver.com/v5/search/' + encodeURIComponent(name);
+        var kakaoHref = 'https://map.kakao.com/link/search/' + encodeURIComponent(name);
+        return '<div class="place-candidate">'
+          + '<p class="place-candidate__name">' + name + '</p>'
+          + '<div class="place-candidate__links">'
+          + '<a class="place-map-btn place-map-btn--naver" target="_blank" rel="noopener" href="' + naverHref + '">' + naverIconSvg + '네이버지도</a>'
+          + '<a class="place-map-btn place-map-btn--kakao" target="_blank" rel="noopener" href="' + kakaoHref + '">' + kakaoIconSvg + '카카오맵</a>'
+          + '</div></div>';
+      }).join('');
+      placeModalCandidates.hidden = false;
+    } else {
+      placeModalCandidates.hidden = true;
+      placeModalCandidates.innerHTML = '';
+    }
+    placeModal.classList.add('is-open');
+    placeModal.setAttribute('aria-hidden', 'false');
+  }
+  function closePlaceModal(){
+    placeModal.classList.remove('is-open');
+    placeModal.setAttribute('aria-hidden', 'true');
+  }
+  Array.prototype.slice.call(document.querySelectorAll('.place-btn')).forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      openPlaceModal({
+        title: btn.dataset.placeTitle,
+        value: btn.dataset.placeValue,
+        map: btn.dataset.placeMap,
+        image: btn.dataset.placeImage,
+        candidates: btn.dataset.placeCandidates ? JSON.parse(btn.dataset.placeCandidates) : null
+      });
+    });
+  });
+  document.getElementById('placeModalBackdrop').addEventListener('click', closePlaceModal);
+  document.getElementById('placeModalClose').addEventListener('click', closePlaceModal);
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closePlaceModal(); });
+
+  if(!reduced){
+    var colors = ['var(--coral)','var(--marigold)','var(--teal)','var(--paper)'];
+    function spawnConfetti(fieldId, count){
+      var field = document.getElementById(fieldId);
+      for(var i=0;i<count;i++){
+        var s = document.createElement('span');
+        s.className = 'bit';
+        var size = 5 + Math.random()*6;
+        s.style.width = size+'px';
+        s.style.height = (size*0.4)+'px';
+        s.style.left = (Math.random()*100)+'%';
+        s.style.background = colors[i%colors.length];
+        s.style.animationDuration = (7+Math.random()*6)+'s';
+        s.style.animationDelay = (Math.random()*8)+'s';
+        s.style.transform = 'rotate('+(Math.random()*360)+'deg)';
+        field.appendChild(s);
+      }
+    }
+    spawnConfetti('confetti0', 20);
+  }
+})();
+</script>
+</body>
+</html>
