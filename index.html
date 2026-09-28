@@ -36,6 +36,8 @@
 
   *,*::before,*::after{ box-sizing:border-box; }
   [hidden]{ display:none !important; }
+  /* stops iOS Safari from auto-boosting font sizes in narrow columns — text should size the same on every phone */
+  html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
   html,body{ height:100%; margin:0; }
   body{
     background:var(--ink);
