@@ -465,7 +465,7 @@
       <div class="schedule">
         <p class="day-label">DAY 1</p>
         <div class="item"><span class="t">15:00</span><span class="rail"></span><span><span class="name">헤드스파 <button class="place-btn" data-place-title="헤드스파 장소" data-place-value="웰킨두피탈모센터 신사점
-신분당선 신사역 인근" data-place-map="웰킨두피탈모센터 신사점" data-place-image="headspa-map.webp">&gt;&gt;&gt; 장소 확인하기</button></span><br><span class="desc">무더운 여름을 견뎌준 두피에게 주는 휴식 시간</span></span></div>
+신사역 3번출구 도보 약 2분" data-place-map="웰킨두피탈모센터 신사점" data-place-kakao-map="웰킨 서울신사점" data-place-image="headspa-map.webp">&gt;&gt;&gt; 장소 확인하기</button></span><br><span class="desc">무더운 여름을 견뎌준 두피에게 주는 휴식 시간</span></span></div>
         <div class="item"><span class="t">17:00</span><span class="rail"></span><span><span class="name">걸스 파티 <button class="place-btn" data-place-title="걸스 파티 장소" data-place-value="Hyejin's Sweet Home" data-place-image="girlsparty-photo.webp">&gt;&gt;&gt; 장소 확인하기</button></span><br><span class="desc">각자 준비하는 맛있는 음식 먹으면서 토크토크 타임</span></span></div>
         <div class="item"><span class="t">20:00</span><span class="rail"></span><span><span class="name">주제 토크</span><br><span class="desc">몇가지 주제 정해서 생각을 공유해보는 시간</span></span></div>
         <div class="item"><span class="t">21:00</span><span class="rail"></span><span><span class="name">어드민나이트</span><br><span class="desc">각자 하지 못했던, 하고 싶었던, 해야하는 일 하는 시간</span></span></div>
@@ -655,7 +655,7 @@
     }
     if(opts.map){
       placeNaverLink.href = 'https://map.naver.com/v5/search/' + encodeURIComponent(opts.map);
-      placeKakaoLink.href = 'https://map.kakao.com/link/search/' + encodeURIComponent(opts.map);
+      placeKakaoLink.href = 'https://map.kakao.com/link/search/' + encodeURIComponent(opts.kakaoMap || opts.map);
       placeModalLinks.hidden = false;
     } else {
       placeModalLinks.hidden = true;
@@ -690,6 +690,7 @@
         title: btn.dataset.placeTitle,
         value: btn.dataset.placeValue,
         map: btn.dataset.placeMap,
+        kakaoMap: btn.dataset.placeKakaoMap,
         image: btn.dataset.placeImage,
         candidates: btn.dataset.placeCandidates ? JSON.parse(btn.dataset.placeCandidates) : null
       });
